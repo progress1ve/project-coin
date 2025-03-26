@@ -15,6 +15,25 @@ const coinImgElement = document.getElementById('coin-img');
 const pointsPerClickElement = document.getElementById('points-per-click');
 const upgradesListElement = document.getElementById('upgrades-list');
 
+// Начальные значения
+let score = 0;
+let clickValue = 1;
+let upgradeCosts = {
+    clickUpgrade: 10,
+    autoClicker: 50
+};
+let autoClickerInterval = null;
+let autoClickerCount = 0;
+
+// Элементы DOM
+const scoreElement = document.getElementById('score');
+const clickValueElement = document.getElementById('clickValue');
+const upgradeContainer = document.getElementById('upgradeContainer');
+const mainScreen = document.getElementById('mainScreen');
+const upgradeScreen = document.getElementById('upgradeScreen');
+const upgradeButton = document.getElementById('upgradeButton');
+const backButton = document.getElementById('backButton');
+
 // Данные пользователя
 let userData = {
     user_id: null,
@@ -226,6 +245,90 @@ async function handleUpgradePurchase(event) {
         });
     }
 }
+
+// Обновление отображения
+function updateDisplay() {
+    scoreElement.textContent = score;
+    clickValueElement.textContent = clickValue;
+    
+    document.getElementById('clickUpgradeButton').textContent = 
+        `Улучшить клик (+1) - ${upgradeCosts.clickUpgrade} очков`;
+    document.getElementById('autoClickerButton').textContent = 
+        `Авто-кликер (${autoClickerCount}) - ${upgradeCosts.autoClicker} очков`;
+    
+    // Проверка доступности улучшений
+    document.getElementById('clickUpgradeButton').disabled = score < upgradeCosts.clickUpgrade;
+    document.getElementById('autoClickerButton').disabled = score < upgradeCosts.autoClicker;
+}
+
+// Обработка клика по монете
+coinElement.addEventListener('click', () => {
+    score += clickValue;
+    updateDisplay();
+    
+    // Анимация при клике
+    coinElement.classList.add('coin-click');
+    setTimeout(() => {
+        coinElement.classList.remove('coin-click');
+    }, 150);
+    
+    // Создаем летящие числа при клике
+    const clickIndicator = document.createElement('div');
+    clickIndicator.className = 'click-indicator';
+    clickIndicator.textContent = `+${clickValue}`;
+    clickIndicator.style.left = `${Math.random() * 100}px`;
+    coinElement.appendChild(clickIndicator);
+    
+    setTimeout(() => {
+        clickIndicator.remove();
+    }, 1000);
+});
+
+// Улучшение клика
+document.getElementById('clickUpgradeButton').addEventListener('click', () => {
+    if (score >= upgradeCosts.clickUpgrade) {
+        score -= upgradeCosts.clickUpgrade;
+        clickValue += 1;
+        upgradeCosts.clickUpgrade = Math.floor(upgradeCosts.clickUpgrade * 1.5);
+        updateDisplay();
+    }
+});
+
+// Покупка авто-кликера
+document.getElementById('autoClickerButton').addEventListener('click', () => {
+    if (score >= upgradeCosts.autoClicker) {
+        score -= upgradeCosts.autoClicker;
+        autoClickerCount += 1;
+        upgradeCosts.autoClicker = Math.floor(upgradeCosts.autoClicker * 1.5);
+        
+        // Очищаем предыдущий интервал
+        if (autoClickerInterval) {
+            clearInterval(autoClickerInterval);
+        }
+        
+        // Устанавливаем новый интервал
+        autoClickerInterval = setInterval(() => {
+            score += autoClickerCount;
+            updateDisplay();
+        }, 1000);
+        
+        updateDisplay();
+    }
+});
+
+// Переключение экранов
+upgradeButton.addEventListener('click', () => {
+    mainScreen.style.display = 'none';
+    upgradeScreen.style.display = 'block';
+});
+
+backButton.addEventListener('click', () => {
+    mainScreen.style.display = 'flex';
+    upgradeScreen.style.display = 'none';
+});
+
+// Инициализация отображения
+updateDisplay();
 
 // Запускаем приложение при загрузке страницы
 document.addEventListener('DOMContentLoaded', initApp); 

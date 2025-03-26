@@ -3,7 +3,7 @@ const tg = window.Telegram.WebApp;
 tg.expand(); // Расширяем на весь экран
 
 // Конфигурация API
-const API_BASE_URL = 'https://ваш_api_url'; // Замените на URL вашего API в продакшене
+const API_BASE_URL = 'http://localhost:8000'; // Замените на URL вашего API в продакшене
 
 // DOM элементы
 const loadingElement = document.getElementById('loading');
@@ -14,6 +14,25 @@ const coinElement = document.getElementById('coin');
 const coinImgElement = document.getElementById('coin-img');
 const pointsPerClickElement = document.getElementById('points-per-click');
 const upgradesListElement = document.getElementById('upgrades-list');
+
+// Начальные значения
+let score = 0;
+let clickValue = 1;
+let upgradeCosts = {
+    clickUpgrade: 10,
+    autoClicker: 50
+};
+let autoClickerInterval = null;
+let autoClickerCount = 0;
+
+// Элементы DOM
+const scoreElement = document.getElementById('score');
+const clickValueElement = document.getElementById('clickValue');
+const upgradeContainer = document.getElementById('upgradeContainer');
+const mainScreen = document.getElementById('mainScreen');
+const upgradeScreen = document.getElementById('upgradeScreen');
+const upgradeButton = document.getElementById('upgradeButton');
+const backButton = document.getElementById('backButton');
 
 // Данные пользователя
 let userData = {
@@ -38,54 +57,6 @@ async function initApp() {
             userData.username = tg.initDataUnsafe.user.username;
         }
 
-        // Для тестирования без API backend - показываем демо-интерфейс
-        if (!API_BASE_URL || API_BASE_URL === 'https://ваш_api_url') {
-            // Симулируем загрузку
-            setTimeout(() => {
-                // Демо-данные
-                userData.points = 500;
-                userData.level = 3;
-                userData.points_per_click = 5;
-                userData.upgrades = [
-                    {
-                        id: 1,
-                        name: "Кликер новичка",
-                        description: "Увеличивает количество очков за клик на 1",
-                        cost: 50,
-                        points_boost: 1,
-                        required_level: 1,
-                        owned: 2
-                    },
-                    {
-                        id: 2,
-                        name: "Кликер любителя",
-                        description: "Увеличивает количество очков за клик на 3",
-                        cost: 200,
-                        points_boost: 3,
-                        required_level: 2,
-                        owned: 1
-                    },
-                    {
-                        id: 3,
-                        name: "Кликер профессионала",
-                        description: "Увеличивает количество очков за клик на 5",
-                        cost: 500,
-                        points_boost: 5,
-                        required_level: 3,
-                        owned: 0
-                    }
-                ];
-                
-                updateUI();
-                loadingElement.classList.add('hidden');
-                contentElement.classList.remove('hidden');
-                
-                // Инициализируем обработчики событий
-                initDemoEventListeners();
-            }, 1500);
-            return;
-        }
-
         // Запрашиваем данные пользователя с сервера
         await fetchUserData();
 
@@ -102,52 +73,6 @@ async function initApp() {
         console.error('Ошибка инициализации приложения:', error);
         alert('Произошла ошибка при загрузке приложения. Пожалуйста, попробуйте позже.');
     }
-}
-
-// Функция для демо-режима (без API)
-function initDemoEventListeners() {
-    // Обработчик клика по монете для демо-режима
-    coinElement.addEventListener('click', () => {
-        // Анимация монеты при клике
-        coinImgElement.style.animation = 'coinPop 0.3s ease';
-        
-        // Показываем анимацию очков за клик
-        pointsPerClickElement.style.opacity = '1';
-        pointsPerClickElement.style.animation = 'clickPointsAnim 0.8s ease-out';
-        
-        // Сбрасываем анимации после их завершения
-        setTimeout(() => {
-            coinImgElement.style.animation = '';
-            pointsPerClickElement.style.opacity = '0';
-            pointsPerClickElement.style.animation = '';
-        }, 800);
-        
-        // Обновляем данные пользователя локально
-        userData.points += userData.points_per_click;
-        updateUI();
-    });
-    
-    // Добавляем обработчики для кнопок улучшений в демо-режиме
-    document.querySelectorAll('.upgrade-button').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const upgradeId = parseInt(event.target.dataset.id);
-            const upgrade = userData.upgrades.find(u => u.id === upgradeId);
-            
-            if (upgrade && userData.points >= upgrade.cost) {
-                userData.points -= upgrade.cost;
-                userData.points_per_click += upgrade.points_boost;
-                upgrade.owned += 1;
-                
-                updateUI();
-                
-                tg.showPopup({
-                    title: 'Улучшение приобретено',
-                    message: `Улучшение "${upgrade.name}" успешно приобретено!`,
-                    buttons: [{ type: 'ok' }]
-                });
-            }
-        });
-    });
 }
 
 // Запрос данных пользователя с сервера
@@ -320,6 +245,90 @@ async function handleUpgradePurchase(event) {
         });
     }
 }
+
+// Обновление отображения
+function updateDisplay() {
+    scoreElement.textContent = score;
+    clickValueElement.textContent = clickValue;
+    
+    document.getElementById('clickUpgradeButton').textContent = 
+        `Улучшить клик (+1) - ${upgradeCosts.clickUpgrade} очков`;
+    document.getElementById('autoClickerButton').textContent = 
+        `Авто-кликер (${autoClickerCount}) - ${upgradeCosts.autoClicker} очков`;
+    
+    // Проверка доступности улучшений
+    document.getElementById('clickUpgradeButton').disabled = score < upgradeCosts.clickUpgrade;
+    document.getElementById('autoClickerButton').disabled = score < upgradeCosts.autoClicker;
+}
+
+// Обработка клика по монете
+coinElement.addEventListener('click', () => {
+    score += clickValue;
+    updateDisplay();
+    
+    // Анимация при клике
+    coinElement.classList.add('coin-click');
+    setTimeout(() => {
+        coinElement.classList.remove('coin-click');
+    }, 150);
+    
+    // Создаем летящие числа при клике
+    const clickIndicator = document.createElement('div');
+    clickIndicator.className = 'click-indicator';
+    clickIndicator.textContent = `+${clickValue}`;
+    clickIndicator.style.left = `${Math.random() * 100}px`;
+    coinElement.appendChild(clickIndicator);
+    
+    setTimeout(() => {
+        clickIndicator.remove();
+    }, 1000);
+});
+
+// Улучшение клика
+document.getElementById('clickUpgradeButton').addEventListener('click', () => {
+    if (score >= upgradeCosts.clickUpgrade) {
+        score -= upgradeCosts.clickUpgrade;
+        clickValue += 1;
+        upgradeCosts.clickUpgrade = Math.floor(upgradeCosts.clickUpgrade * 1.5);
+        updateDisplay();
+    }
+});
+
+// Покупка авто-кликера
+document.getElementById('autoClickerButton').addEventListener('click', () => {
+    if (score >= upgradeCosts.autoClicker) {
+        score -= upgradeCosts.autoClicker;
+        autoClickerCount += 1;
+        upgradeCosts.autoClicker = Math.floor(upgradeCosts.autoClicker * 1.5);
+        
+        // Очищаем предыдущий интервал
+        if (autoClickerInterval) {
+            clearInterval(autoClickerInterval);
+        }
+        
+        // Устанавливаем новый интервал
+        autoClickerInterval = setInterval(() => {
+            score += autoClickerCount;
+            updateDisplay();
+        }, 1000);
+        
+        updateDisplay();
+    }
+});
+
+// Переключение экранов
+upgradeButton.addEventListener('click', () => {
+    mainScreen.style.display = 'none';
+    upgradeScreen.style.display = 'block';
+});
+
+backButton.addEventListener('click', () => {
+    mainScreen.style.display = 'flex';
+    upgradeScreen.style.display = 'none';
+});
+
+// Инициализация отображения
+updateDisplay();
 
 // Запускаем приложение при загрузке страницы
 document.addEventListener('DOMContentLoaded', initApp); 
