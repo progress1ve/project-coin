@@ -27,17 +27,25 @@ let autoClickerCount = 0;
 
 // Элементы DOM
 const scoreElement = document.getElementById('score');
+const scoreUpgradeElement = document.getElementById('score-upgrade');
 const clickValueElement = document.getElementById('clickValue');
 const upgradeContainer = document.getElementById('upgradeContainer');
 const mainScreen = document.getElementById('mainScreen');
 const upgradeScreen = document.getElementById('upgradeScreen');
 const upgradeButton = document.getElementById('upgradeButton');
 const backButton = document.getElementById('backButton');
+const userAvatarElement = document.getElementById('userAvatar');
+const userNameElement = document.getElementById('userName');
+const userAvatarUpgradeElement = document.getElementById('userAvatarUpgrade');
+const userNameUpgradeElement = document.getElementById('userNameUpgrade');
 
 // Данные пользователя
 let userData = {
     user_id: null,
     username: null,
+    first_name: null,
+    last_name: null,
+    photo_url: null,
     points: 0,
     level: 1,
     points_per_click: 1,
@@ -45,210 +53,71 @@ let userData = {
 };
 
 // Инициализация приложения
-async function initApp() {
+function initApp() {
     try {
         // Получаем данные пользователя из Telegram
         if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
             // Для тестирования без Telegram
             userData.user_id = 123456789;
             userData.username = 'TestUser';
+            userData.first_name = 'Тестовый';
+            userData.last_name = 'Пользователь';
+            userData.photo_url = null;
         } else {
-            userData.user_id = tg.initDataUnsafe.user.id;
-            userData.username = tg.initDataUnsafe.user.username;
+            const user = tg.initDataUnsafe.user;
+            userData.user_id = user.id;
+            userData.username = user.username;
+            userData.first_name = user.first_name;
+            userData.last_name = user.last_name || '';
+            userData.photo_url = user.photo_url;
         }
 
-        // Запрашиваем данные пользователя с сервера
-        await fetchUserData();
-
-        // Отрисовываем интерфейс
-        updateUI();
-
-        // Скрываем загрузочный экран
-        loadingElement.classList.add('hidden');
-        contentElement.classList.remove('hidden');
-
-        // Инициализируем обработчики событий
-        initEventListeners();
+        // Отображаем данные пользователя
+        updateUserProfile();
+        
+        // Обновляем отображение
+        updateDisplay();
     } catch (error) {
         console.error('Ошибка инициализации приложения:', error);
-        alert('Произошла ошибка при загрузке приложения. Пожалуйста, попробуйте позже.');
     }
 }
 
-// Запрос данных пользователя с сервера
-async function fetchUserData() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/user/${userData.user_id}`);
-        
-        if (!response.ok) {
-            throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Обновляем локальные данные
-        userData.points = data.points;
-        userData.level = data.level;
-        userData.points_per_click = data.points_per_click;
-        userData.upgrades = data.upgrades;
-        
-        return data;
-    } catch (error) {
-        console.error('Ошибка при получении данных пользователя:', error);
-        throw error;
-    }
-}
-
-// Обновление интерфейса
-function updateUI() {
-    pointsCountElement.textContent = userData.points;
-    levelElement.textContent = userData.level;
-    pointsPerClickElement.textContent = `+${userData.points_per_click}`;
+// Обновление профиля пользователя
+function updateUserProfile() {
+    // Формируем имя для отображения
+    const displayName = userData.first_name + (userData.last_name ? ' ' + userData.last_name : '');
     
-    renderUpgrades();
-}
-
-// Отрисовка списка улучшений
-function renderUpgrades() {
-    upgradesListElement.innerHTML = '';
+    // Устанавливаем имя пользователя
+    userNameElement.textContent = displayName;
+    userNameUpgradeElement.textContent = displayName;
     
-    if (userData.upgrades.length === 0) {
-        upgradesListElement.innerHTML = '<p class="no-upgrades">Нет доступных улучшений</p>';
-        return;
-    }
-    
-    userData.upgrades.forEach(upgrade => {
-        const upgradeItem = document.createElement('div');
-        upgradeItem.className = 'upgrade-item';
+    // Устанавливаем аватар пользователя
+    if (userData.photo_url) {
+        // Если есть URL фото, создаем элемент изображения
+        const avatarImg = document.createElement('img');
+        avatarImg.src = userData.photo_url;
+        avatarImg.alt = 'Аватар';
         
-        const canAfford = userData.points >= upgrade.cost;
+        userAvatarElement.innerHTML = '';
+        userAvatarElement.appendChild(avatarImg);
         
-        upgradeItem.innerHTML = `
-            <div class="upgrade-info">
-                <div class="upgrade-name">${upgrade.name} ${upgrade.owned > 0 ? `<span class="upgrade-owned">x${upgrade.owned}</span>` : ''}</div>
-                <div class="upgrade-description">${upgrade.description}</div>
-            </div>
-            <div class="upgrade-action">
-                <div class="upgrade-cost">${upgrade.cost} очков</div>
-                <button class="upgrade-button" data-id="${upgrade.id}" ${!canAfford ? 'disabled' : ''}>Купить</button>
-            </div>
-        `;
+        // Копируем аватар на экран улучшений
+        const avatarImgUpgrade = avatarImg.cloneNode(true);
+        userAvatarUpgradeElement.innerHTML = '';
+        userAvatarUpgradeElement.appendChild(avatarImgUpgrade);
+    } else {
+        // Если нет фото, показываем первую букву имени
+        const firstLetter = displayName.charAt(0).toUpperCase();
         
-        upgradesListElement.appendChild(upgradeItem);
-    });
-    
-    // Добавляем обработчики для кнопок улучшений
-    document.querySelectorAll('.upgrade-button').forEach(button => {
-        button.addEventListener('click', handleUpgradePurchase);
-    });
-}
-
-// Инициализация обработчиков событий
-function initEventListeners() {
-    // Обработчик клика по монете
-    coinElement.addEventListener('click', handleCoinClick);
-}
-
-// Обработчик клика по монете
-async function handleCoinClick() {
-    try {
-        // Анимация монеты при клике
-        coinImgElement.style.animation = 'coinPop 0.3s ease';
-        
-        // Показываем анимацию очков за клик
-        pointsPerClickElement.style.opacity = '1';
-        pointsPerClickElement.style.animation = 'clickPointsAnim 0.8s ease-out';
-        
-        // Сбрасываем анимации после их завершения
-        setTimeout(() => {
-            coinImgElement.style.animation = '';
-            pointsPerClickElement.style.opacity = '0';
-            pointsPerClickElement.style.animation = '';
-        }, 800);
-        
-        // Отправляем запрос на сервер
-        const response = await fetch(`${API_BASE_URL}/click`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: userData.user_id,
-                telegram_data: tg.initData || {}
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Обновляем данные пользователя
-        userData.points = data.points;
-        userData.level = data.level;
-        userData.points_per_click = data.points_per_click;
-        userData.upgrades = data.upgrades;
-        
-        // Обновляем интерфейс
-        updateUI();
-    } catch (error) {
-        console.error('Ошибка при обработке клика:', error);
-    }
-}
-
-// Обработчик покупки улучшения
-async function handleUpgradePurchase(event) {
-    try {
-        const upgradeId = parseInt(event.target.dataset.id);
-        
-        // Отправляем запрос на сервер
-        const response = await fetch(`${API_BASE_URL}/purchase`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: userData.user_id,
-                upgrade_id: upgradeId,
-                telegram_data: tg.initData || {}
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || `Ошибка HTTP: ${response.status}`);
-        }
-        
-        // Обновляем данные пользователя
-        userData.points = data.user_data.points;
-        userData.level = data.user_data.level;
-        userData.points_per_click = data.user_data.points_per_click;
-        userData.upgrades = data.user_data.upgrades;
-        
-        // Обновляем интерфейс
-        updateUI();
-        
-        // Показываем сообщение об успешной покупке
-        tg.showPopup({
-            title: 'Улучшение приобретено',
-            message: data.message,
-            buttons: [{ type: 'ok' }]
-        });
-    } catch (error) {
-        console.error('Ошибка при покупке улучшения:', error);
-        tg.showPopup({
-            title: 'Ошибка',
-            message: error.message || 'Произошла ошибка при покупке улучшения',
-            buttons: [{ type: 'ok' }]
-        });
+        userAvatarElement.innerHTML = `<div class="default-avatar">${firstLetter}</div>`;
+        userAvatarUpgradeElement.innerHTML = `<div class="default-avatar">${firstLetter}</div>`;
     }
 }
 
 // Обновление отображения
 function updateDisplay() {
     scoreElement.textContent = score;
+    scoreUpgradeElement.textContent = score;
     clickValueElement.textContent = clickValue;
     
     document.getElementById('clickUpgradeButton').textContent = 
@@ -326,9 +195,6 @@ backButton.addEventListener('click', () => {
     mainScreen.style.display = 'flex';
     upgradeScreen.style.display = 'none';
 });
-
-// Инициализация отображения
-updateDisplay();
 
 // Запускаем приложение при загрузке страницы
 document.addEventListener('DOMContentLoaded', initApp); 

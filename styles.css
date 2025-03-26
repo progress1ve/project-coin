@@ -431,4 +431,48 @@ h1 {
 
 .upgrades-list::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
+}
+
+/* Блок с профилем пользователя */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-avatar .default-avatar {
+    font-size: 20px;
+    color: #ffdd57;
+}
+
+.user-name {
+    font-weight: bold;
+    flex-grow: 1;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 } 
