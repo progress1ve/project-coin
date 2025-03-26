@@ -54,12 +54,6 @@ body {
     width: 100%;
 }
 
-h1 {
-    font-size: 28px;
-    margin-bottom: 15px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
 .stats {
     display: flex;
     justify-content: space-around;
