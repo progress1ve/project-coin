@@ -1,0 +1,279 @@
+:root {
+    --tg-theme-bg-color: #1E1E1E;
+    --tg-theme-text-color: #FFFFFF;
+    --tg-theme-button-color: #008CFF;
+    --tg-theme-button-text-color: #FFFFFF;
+    --primary-color: #FFD700;
+    --secondary-color: #FF9500;
+    --disabled-color: #8C8C8C;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--tg-theme-bg-color, #1E1E1E);
+    color: var(--tg-theme-text-color, #FFFFFF);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    max-width: 500px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 20px;
+}
+
+/* Загрузочный экран */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--tg-theme-bg-color, #1E1E1E);
+    z-index: 100;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Скрытие элементов */
+.hidden {
+    display: none !important;
+}
+
+/* Информация о пользователе */
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+}
+
+.points-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#points-count {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.points-label {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.level-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.level-label {
+    font-size: 16px;
+}
+
+#level {
+    background-color: var(--primary-color);
+    color: #000;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Область с монетой */
+.coin-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30vh;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.coin {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s;
+    user-select: none;
+}
+
+.coin:active {
+    transform: scale(0.95);
+}
+
+.coin img {
+    width: 150px;
+    height: 150px;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+}
+
+.points-per-click {
+    position: absolute;
+    top: -30px;
+    right: -20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: var(--primary-color);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    opacity: 0;
+    transform: translateY(0);
+    transition: opacity 0.2s, transform 0.5s;
+}
+
+/* Анимация при клике */
+@keyframes coinPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes clickPointsAnim {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-50px); }
+}
+
+/* Секция улучшений */
+.upgrades-section {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.upgrades-section h2 {
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 20px;
+    color: var(--primary-color);
+}
+
+.upgrades-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 30vh;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.upgrade-item {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.upgrade-item:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.upgrade-info {
+    flex: 1;
+}
+
+.upgrade-name {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.upgrade-description {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.upgrade-cost {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.upgrade-button {
+    background-color: var(--tg-theme-button-color, #008CFF);
+    color: var(--tg-theme-button-text-color, #FFFFFF);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.upgrade-button:hover {
+    opacity: 0.9;
+}
+
+.upgrade-button:disabled {
+    background-color: var(--disabled-color);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.upgrade-owned {
+    margin-left: 10px;
+    background-color: rgba(0, 140, 255, 0.2);
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+/* Скролл в списке улучшений */
+.upgrades-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.upgrades-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.upgrades-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+.upgrades-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+} 
