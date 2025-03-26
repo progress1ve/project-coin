@@ -92,16 +92,16 @@ h1 {
     position: relative;
     cursor: pointer;
     transition: transform 0.2s;
-    padding: 20px;
+    padding: 30px;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.2);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
 }
 
 .coin img {
-    width: 150px;
-    height: 150px;
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+    width: 200px;
+    height: 200px;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
     transition: transform 0.2s;
 }
 
