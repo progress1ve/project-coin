@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Монетный Кликер</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Загрузочный экран -->
+        <div id="loading" class="loading-screen">
+            <div class="spinner"></div>
+            <p>Загрузка...</p>
+        </div>
+
+        <!-- Основное содержимое -->
+        <div id="content" class="content hidden">
+            <!-- Верхняя панель с информацией о пользователе -->
+            <div class="user-info">
+                <div class="points-container">
+                    <span id="points-count">0</span>
+                    <span class="points-label">очков</span>
+                </div>
+                <div class="level-container">
+                    <span class="level-label">Уровень:</span>
+                    <span id="level">1</span>
+                </div>
+            </div>
+
+            <!-- Область клика по монете -->
+            <div class="coin-container">
+                <div id="coin" class="coin">
+                    <img src="coin.png" alt="Золотая монета" id="coin-img">
+                    <div id="points-per-click" class="points-per-click">+1</div>
+                </div>
+            </div>
+
+            <!-- Улучшения -->
+            <div class="upgrades-section">
+                <h2>Улучшения</h2>
+                <div id="upgrades-list" class="upgrades-list">
+                    <!-- Улучшения будут добавлены через JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 
