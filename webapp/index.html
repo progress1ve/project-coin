@@ -8,7 +8,14 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="container">
+    <!-- Загрузочный экран -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="spinner"></div>
+        <h2>Загрузка игры...</h2>
+        <p class="loading-message">Подключение к вашему профилю</p>
+    </div>
+
+    <div class="container" id="mainContainer" style="display: none;">
         <!-- Основной экран с монетой -->
         <div id="mainScreen" class="screen">
             <div class="header">

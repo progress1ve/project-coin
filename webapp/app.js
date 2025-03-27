@@ -36,6 +36,11 @@ const userNameElement = document.getElementById('userName');
 const userAvatarUpgradeElement = document.getElementById('userAvatarUpgrade');
 const userNameUpgradeElement = document.getElementById('userNameUpgrade');
 
+// Дополнительные элементы DOM для загрузочного экрана
+const loadingScreen = document.getElementById('loadingScreen');
+const mainContainer = document.getElementById('mainContainer');
+const loadingMessage = document.querySelector('.loading-message');
+
 // Данные пользователя
 let userData = {
     user_id: null,
@@ -197,12 +202,37 @@ async function loadFromServer() {
     }
 }
 
+// Функция для обновления сообщения загрузки
+function updateLoadingMessage(message) {
+    if (loadingMessage) {
+        loadingMessage.textContent = message;
+        loadingMessage.classList.add('dots-animation');
+    }
+}
+
+// Функция для скрытия загрузочного экрана с анимацией
+function hideLoadingScreen() {
+    loadingScreen.style.opacity = '0';
+    setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        mainContainer.style.display = 'block';
+    }, 500);
+}
+
 // Инициализация приложения
 async function initApp() {
     try {
+        updateLoadingMessage('Подключение к Telegram');
+        
+        // Имитация задержки, чтобы показать загрузочный экран (можно убрать в продакшене)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Получаем данные пользователя из Telegram
         if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
             // Для тестирования без Telegram
+            updateLoadingMessage('Создание тестового профиля');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
             userData.user_id = 123456789;
             userData.username = 'TestUser';
             userData.first_name = 'Тестовый';
@@ -217,25 +247,43 @@ async function initApp() {
             userData.photo_url = user.photo_url;
         }
 
+        updateLoadingMessage('Загрузка сохраненного прогресса');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Сначала пробуем загрузить с сервера
         const serverLoaded = await loadFromServer();
         
         // Если с сервера не удалось, пробуем из localStorage
         if (!serverLoaded) {
+            updateLoadingMessage('Восстановление локальных данных');
+            await new Promise(resolve => setTimeout(resolve, 800));
             loadProgress();
         }
+        
+        updateLoadingMessage('Подготовка игрового интерфейса');
+        await new Promise(resolve => setTimeout(resolve, 600));
         
         // Отображаем данные пользователя
         updateUserProfile();
         
         // Обновляем отображение
         updateDisplay();
+        
+        // Скрываем загрузочный экран и показываем игру
+        hideLoadingScreen();
     } catch (error) {
         console.error('Ошибка инициализации приложения:', error);
+        
+        updateLoadingMessage('Произошла ошибка');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Пробуем загрузить из localStorage в случае ошибки
         loadProgress();
         updateUserProfile();
         updateDisplay();
+        
+        // Все равно показываем игру, даже если была ошибка
+        hideLoadingScreen();
     }
 }
 
@@ -408,7 +456,13 @@ function initEventListeners() {
 
 // Запускаем приложение при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
+    // Показываем загрузочный экран
+    loadingScreen.style.display = 'flex';
+    
+    // Инициализируем приложение
     initApp();
+    
+    // Настраиваем обработчики событий
     initEventListeners();
 });
 
