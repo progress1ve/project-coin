@@ -22,7 +22,6 @@
                     </div>
                 </div>
                 
-                <h1>Монетный Кликер</h1>
                 <div class="stats">
                     <div class="stat-item">
                         <span>Очки:</span>
@@ -35,19 +34,17 @@
                 </div>
             </div>
 
-            <div class="coin" id="coin">
-                <img src="coin.png" alt="Монета">
-            </div>
-
-            <div class="button-container">
-                <button id="upgradeButton" class="btn btn-upgrade">Улучшения</button>
+            <div class="coin-container">
+                <div class="coin" id="coin">
+                    <img src="coin.png" alt="Монета" id="coin-img">
+                </div>
             </div>
         </div>
 
-        <!-- Экран улучшений -->
-        <div id="upgradeScreen" class="screen" style="display: none;">
+        <!-- Экран улучшений (boosters) -->
+        <div id="boostersScreen" class="screen" style="display: none;">
             <div class="header">
-                <!-- Блок с данными пользователя (на экране улучшений) -->
+                <!-- Блок с данными пользователя -->
                 <div class="user-profile">
                     <div class="user-avatar" id="userAvatarUpgrade">
                         <!-- Аватар будет добавлен через JavaScript -->
@@ -57,7 +54,6 @@
                     </div>
                 </div>
                 
-                <h1>Улучшения</h1>
                 <div class="stats">
                     <div class="stat-item">
                         <span>Очки:</span>
@@ -74,9 +70,54 @@
                     Авто-кликер (0) - 50 очков
                 </button>
             </div>
+        </div>
 
-            <div class="button-container">
-                <button id="backButton" class="btn btn-back">Назад</button>
+        <!-- Экран профиля -->
+        <div id="profileScreen" class="screen" style="display: none;">
+            <!-- Контент экрана профиля -->
+        </div>
+
+        <!-- Экран заданий -->
+        <div id="tasksScreen" class="screen" style="display: none;">
+            <!-- Контент экрана заданий -->
+        </div>
+
+        <!-- Экран друзей -->
+        <div id="friendsScreen" class="screen" style="display: none;">
+            <!-- Контент экрана друзей -->
+        </div>
+
+        <!-- Навигационное меню -->
+        <div class="nav-menu">
+            <div class="nav-item active" data-screen="mainScreen">
+                <div class="nav-icon">
+                    <img src="https://img.icons8.com/?size=100&id=OR6d9aJQZo8w&format=png&color=000000" alt="Mine">
+                </div>
+                <span>Mine</span>
+            </div>
+            <div class="nav-item" data-screen="profileScreen">
+                <div class="nav-icon">
+                    <img src="https://img.icons8.com/?size=100&id=14736&format=png&color=000000" alt="Profile">
+                </div>
+                <span>Profile</span>
+            </div>
+            <div class="nav-item" data-screen="boostersScreen">
+                <div class="nav-icon">
+                    <img src="https://img.icons8.com/?size=100&id=9378&format=png&color=000000" alt="Boosters">
+                </div>
+                <span>Boosters</span>
+            </div>
+            <div class="nav-item" data-screen="tasksScreen">
+                <div class="nav-icon">
+                    <img src="https://img.icons8.com/?size=100&id=11266&format=png&color=000000" alt="Tasks">
+                </div>
+                <span>Tasks</span>
+            </div>
+            <div class="nav-item" data-screen="friendsScreen">
+                <div class="nav-icon">
+                    <img src="https://img.icons8.com/?size=100&id=u09tKZyLr2A0&format=png&color=000000" alt="Friends">
+                </div>
+                <span>Friends</span>
             </div>
         </div>
     </div>

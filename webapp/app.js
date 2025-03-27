@@ -29,15 +29,14 @@ let autoClickerCount = 0;
 const scoreElement = document.getElementById('score');
 const scoreUpgradeElement = document.getElementById('score-upgrade');
 const clickValueElement = document.getElementById('clickValue');
-const upgradeContainer = document.getElementById('upgradeContainer');
 const mainScreen = document.getElementById('mainScreen');
-const upgradeScreen = document.getElementById('upgradeScreen');
-const upgradeButton = document.getElementById('upgradeButton');
-const backButton = document.getElementById('backButton');
+const boostersScreen = document.getElementById('boostersScreen');
 const userAvatarElement = document.getElementById('userAvatar');
 const userNameElement = document.getElementById('userName');
 const userAvatarUpgradeElement = document.getElementById('userAvatarUpgrade');
 const userNameUpgradeElement = document.getElementById('userNameUpgrade');
+const clickUpgradeButton = document.getElementById('clickUpgradeButton');
+const autoClickerButton = document.getElementById('autoClickerButton');
 
 // Данные пользователя
 let userData = {
@@ -130,71 +129,106 @@ function updateDisplay() {
     document.getElementById('autoClickerButton').disabled = score < upgradeCosts.autoClicker;
 }
 
-// Обработка клика по монете
-coinElement.addEventListener('click', () => {
-    score += clickValue;
-    updateDisplay();
-    
-    // Анимация при клике
-    coinElement.classList.add('coin-click');
-    setTimeout(() => {
-        coinElement.classList.remove('coin-click');
-    }, 150);
-    
-    // Создаем летящие числа при клике
-    const clickIndicator = document.createElement('div');
-    clickIndicator.className = 'click-indicator';
-    clickIndicator.textContent = `+${clickValue}`;
-    clickIndicator.style.left = `${Math.random() * 100}px`;
-    coinElement.appendChild(clickIndicator);
-    
-    setTimeout(() => {
-        clickIndicator.remove();
-    }, 1000);
-});
-
-// Улучшение клика
-document.getElementById('clickUpgradeButton').addEventListener('click', () => {
-    if (score >= upgradeCosts.clickUpgrade) {
-        score -= upgradeCosts.clickUpgrade;
-        clickValue += 1;
-        upgradeCosts.clickUpgrade = Math.floor(upgradeCosts.clickUpgrade * 1.5);
+// Инициализация обработчиков событий
+function initEventListeners() {
+    // Клик по монете
+    document.getElementById('coin').addEventListener('click', () => {
+        score += clickValue;
         updateDisplay();
-    }
-});
-
-// Покупка авто-кликера
-document.getElementById('autoClickerButton').addEventListener('click', () => {
-    if (score >= upgradeCosts.autoClicker) {
-        score -= upgradeCosts.autoClicker;
-        autoClickerCount += 1;
-        upgradeCosts.autoClicker = Math.floor(upgradeCosts.autoClicker * 1.5);
         
-        // Очищаем предыдущий интервал
-        if (autoClickerInterval) {
-            clearInterval(autoClickerInterval);
-        }
+        // Анимация при клике
+        document.getElementById('coin').classList.add('coin-click');
+        setTimeout(() => {
+            document.getElementById('coin').classList.remove('coin-click');
+        }, 150);
         
-        // Устанавливаем новый интервал
-        autoClickerInterval = setInterval(() => {
-            score += autoClickerCount;
-            updateDisplay();
+        // Создаем летящие числа при клике
+        const clickIndicator = document.createElement('div');
+        clickIndicator.className = 'click-indicator';
+        clickIndicator.textContent = `+${clickValue}`;
+        clickIndicator.style.left = `${Math.random() * 100}px`;
+        document.getElementById('coin').appendChild(clickIndicator);
+        
+        setTimeout(() => {
+            clickIndicator.remove();
         }, 1000);
-        
-        updateDisplay();
-    }
-});
+    });
 
-// Переключение экранов
-upgradeButton.addEventListener('click', () => {
-    mainScreen.style.display = 'none';
-    upgradeScreen.style.display = 'block';
-});
+    // Улучшение клика
+    document.getElementById('clickUpgradeButton').addEventListener('click', () => {
+        if (score >= upgradeCosts.clickUpgrade) {
+            score -= upgradeCosts.clickUpgrade;
+            clickValue += 1;
+            upgradeCosts.clickUpgrade = Math.floor(upgradeCosts.clickUpgrade * 1.5);
+            updateDisplay();
+        }
+    });
 
-backButton.addEventListener('click', () => {
-    mainScreen.style.display = 'flex';
-    upgradeScreen.style.display = 'none';
-});
+    // Покупка авто-кликера
+    document.getElementById('autoClickerButton').addEventListener('click', () => {
+        if (score >= upgradeCosts.autoClicker) {
+            score -= upgradeCosts.autoClicker;
+            autoClickerCount += 1;
+            upgradeCosts.autoClicker = Math.floor(upgradeCosts.autoClicker * 1.5);
+            
+            // Очищаем предыдущий интервал
+            if (autoClickerInterval) {
+                clearInterval(autoClickerInterval);
+            }
+            
+            // Устанавливаем новый интервал
+            autoClickerInterval = setInterval(() => {
+                score += autoClickerCount;
+                updateDisplay();
+            }, 1000);
+            
+            updateDisplay();
+        }
+    });
+
+    // Обработка навигации
+    const navItems = document.querySelectorAll('.nav-item');
+    const screens = document.querySelectorAll('.screen');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Убираем активный класс со всех элементов меню
+            navItems.forEach(navItem => navItem.classList.remove('active'));
+            
+            // Добавляем активный класс текущему элементу
+            this.classList.add('active');
+            
+            // Получаем id экрана для отображения
+            const screenId = this.dataset.screen;
+            
+            // Скрываем все экраны
+            screens.forEach(screen => screen.style.display = 'none');
+            
+            // Показываем нужный экран
+            document.getElementById(screenId).style.display = 'flex';
+            
+            // Обновляем данные на экране, если это экран улучшений
+            if (screenId === 'boostersScreen') {
+                document.getElementById('score-upgrade').textContent = score;
+            }
+        });
+    });
+}
 
 // Запускаем приложение при загрузке страницы
-document.addEventListener('DOMContentLoaded', initApp); 
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+    initEventListeners();
+});
+
+// Убираем синее выделение при клике
+document.addEventListener('DOMContentLoaded', function() {
+    // Находим элемент с монетой
+    const coinElement = document.querySelector('.coin'); // Замените на ваш селектор
+
+    // Убираем стандартное выделение
+    coinElement.style.webkitTapHighlightColor = 'transparent';
+    coinElement.style.outline = 'none';
+    coinElement.style.userSelect = 'none';
+    
+}); 
