@@ -231,4 +231,4 @@ document.addEventListener('DOMContentLoaded', function() {
     coinElement.style.outline = 'none';
     coinElement.style.userSelect = 'none';
     
-}); 
+});
