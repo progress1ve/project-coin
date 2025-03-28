@@ -133,6 +133,16 @@ async def get_user_data(user_id: int, _: bool = Depends(validate_telegram_data))
         logging.error(f"Ошибка при получении данных пользователя: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/top-users")
+async def get_top_users(limit: int = 10):
+    """Получает список топ пользователей по количеству SLC."""
+    try:
+        top_users = db.get_top_users(limit)
+        return {"top_users": top_users}
+    except Exception as e:
+        logging.error(f"Ошибка при получении топа пользователей: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Запуск сервера
 if __name__ == "__main__":
     import uvicorn

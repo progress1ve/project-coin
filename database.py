@@ -268,5 +268,30 @@ class Database:
                 self.connection.rollback()
             return {"success": False, "message": str(e)}
 
+    def get_top_users(self, limit=10):
+        """Получение списка пользователей с наибольшим количеством SLC."""
+        try:
+            self.cursor.execute("""
+                SELECT user_id, username, points, level, points_per_click
+                FROM users
+                ORDER BY points DESC
+                LIMIT ?
+            """, (limit,))
+            
+            top_users = []
+            for row in self.cursor.fetchall():
+                top_users.append({
+                    "user_id": row[0],
+                    "username": row[1] or f"User{row[0]}",
+                    "points": row[2],
+                    "level": row[3],
+                    "points_per_click": row[4]
+                })
+            
+            return top_users
+        except sqlite3.Error as e:
+            logging.error(f"Ошибка при получении топа пользователей: {e}")
+            return []
+
 # Создание глобального экземпляра базы данных
 db = Database() 

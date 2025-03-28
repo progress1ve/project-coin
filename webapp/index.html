@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Монетный Кликер</title>
+    <title>StarlightCoin Майнер</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -11,120 +14,264 @@
     <!-- Загрузочный экран -->
     <div id="loadingScreen" class="loading-screen">
         <div class="spinner"></div>
-        <h2>Загрузка игры...</h2>
-        <p class="loading-message">Подключение к вашему профилю</p>
+        <h2>Инициализация майнера</h2>
+        <p class="loading-message">Подключение к блокчейну</p>
+        
+        <!-- Прогресс бар загрузки -->
+        <div class="loading-progress">
+            <div class="loading-progress-fill" id="loadingProgressFill"></div>
+        </div>
+        
+        <!-- Анимированные точки -->
+        <div class="loading-dots">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
     </div>
 
     <div class="container" id="mainContainer" style="display: none;">
+        <!-- Верхняя панель профиля - всегда видима -->
+        <div class="profile-header">
+            <div class="profile-info">
+                <div class="user-avatar" id="userAvatar">
+                    <!-- Аватар будет добавлен через JavaScript -->
+                </div>
+                <div class="user-name" id="userName">
+                    <!-- Имя пользователя будет добавлено через JavaScript -->
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button class="settings-btn" id="settingsBtn">
+                    <img src="https://img.icons8.com/?size=100&id=2969&format=png&color=000000" alt="Настройки">
+                </button>
+            </div>
+        </div>
+
         <!-- Основной экран с монетой -->
-        <div id="mainScreen" class="screen">
-            <div class="header">
-                <!-- Блок с данными пользователя -->
-                <div class="user-profile">
-                    <div class="user-avatar" id="userAvatar">
-                        <!-- Аватар будет добавлен через JavaScript -->
+        <div id="mainScreen" class="screen active">
+            <div class="content">
+                <div class="balance-header">
+                    <div class="balance-title">Баланс</div>
+                    <div class="balance-value" id="score">0</div>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stats-box metrics-box">
+                        <div class="metrics-row">
+                            <div class="metric-label">Хешрейт:</div>
+                            <div class="metric-value">
+                                <span class="hashrate" id="clickValue">0</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="user-name" id="userName">
-                        <!-- Имя пользователя будет добавлено через JavaScript -->
+                    
+                    <div class="stats-box metrics-box">
+                        <div class="metrics-row">
+                            <div class="metric-label">Доход/сек:</div>
+                            <div class="metric-value">
+                                <span class="daily-income" id="dailyIncome">0</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="stats">
-                    <div class="stat-item">
-                        <span>Очки:</span>
-                        <span id="score">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span>За клик:</span>
-                        <span id="clickValue">1</span>
+                <div class="coin-container">
+                    <div class="coin" id="coin" tabindex="-1" draggable="false">
+                        <img src="coin.png" alt="StarlightCoin" id="coin-img" draggable="false">
                     </div>
                 </div>
-            </div>
-
-            <div class="coin-container">
-                <div class="coin" id="coin">
-                    <img src="coin.png" alt="Монета" id="coin-img">
+                
+                <div class="rank-container">
+                    <div class="stats-box place-box">
+                        <div id="rankIndicator" class="rank-block">
+                            <div class="rank-circle">1</div>
+                            <div class="rank-label">Место</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- Экран рейтинга (топа) -->
+        <div id="leaderboardScreen" class="screen" style="display: none;">
+            <div class="screen-header">
+                <div class="header-with-back">
+                    <button id="backToMainButton" class="btn-back-arrow">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 12H5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 19L5 12L12 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <h3>Рейтинг майнеров</h3>
+                </div>
+                <div class="balance-display">
+                    <span id="score-leaderboard">0</span> SLC
+                </div>
+            </div>
+            
+            <!-- Контейнер для топа пользователей -->
+            <div id="topUsersContainer" class="top-users-container leaderboard-view"></div>
+        </div>
+
         <!-- Экран улучшений (boosters) -->
         <div id="boostersScreen" class="screen" style="display: none;">
-            <div class="header">
-                <!-- Блок с данными пользователя -->
-                <div class="user-profile">
-                    <div class="user-avatar" id="userAvatarUpgrade">
-                        <!-- Аватар будет добавлен через JavaScript -->
-                    </div>
-                    <div class="user-name" id="userNameUpgrade">
-                        <!-- Имя пользователя будет добавлено через JavaScript -->
-                    </div>
-                </div>
-                
-                <div class="stats">
-                    <div class="stat-item">
-                        <span>Очки:</span>
-                        <span id="score-upgrade">0</span>
-                    </div>
+            <div class="screen-header">
+                <h3>Майнеры и улучшения</h3>
+                <div class="balance-display">
+                    <span id="score-upgrade">0</span> SLC
                 </div>
             </div>
 
             <div class="upgrade-list">
-                <button id="clickUpgradeButton" class="btn btn-upgrade">
-                    Улучшить клик (+1) - 10 очков
+                <button id="clickUpgradeButton" class="btn btn-upgrade" style="font-weight: 600 !important; font-family: 'Unbounded', sans-serif !important;">
+                    Оптимизация Алгоритма (+1) - 10 SLC
                 </button>
-                <button id="autoClickerButton" class="btn btn-upgrade">
-                    Авто-кликер (0) - 50 очков
+                <button id="autoClickerButton" class="btn btn-upgrade" style="font-weight: 600 !important; font-family: 'Unbounded', sans-serif !important;">
+                    Майнинг-Риг на GPU (0) - 50 SLC
+                </button>
+                <button id="coolingSystemButton" class="btn btn-upgrade">
+                    Система Охлаждения (x1.2) - 100 SLC
+                </button>
+                <button id="energyEfficiencyButton" class="btn btn-upgrade">
+                    Энергоэффективность (-10%) - 150 SLC
+                </button>
+                <button id="signalBoostButton" class="btn btn-upgrade">
+                    Усиление Сигнала (+5%) - 200 SLC
                 </button>
             </div>
         </div>
 
         <!-- Экран профиля -->
         <div id="profileScreen" class="screen" style="display: none;">
-            <!-- Контент экрана профиля -->
+            <div class="screen-header">
+                <h3>Профиль майнера</h3>
+                <div class="balance-display">
+                    <span id="score-profile">0</span> SLC
+                </div>
+            </div>
+            
+            <div class="profile-stats">
+                <h3>Статистика майнинга</h3>
+                <div class="stat-row">
+                    <span>Хешрейт:</span>
+                    <span id="hashrate-stats">1 H/s</span>
+                </div>
+                <div class="stat-row">
+                    <span>Добыто всего:</span>
+                    <span id="total-mined">0 SLC</span>
+                </div>
+                <div class="stat-row">
+                    <span>Вес в аирдропе:</span>
+                    <span id="airdrop-weight">1x</span>
+                </div>
+                <div class="progress-bar-container">
+                    <label>Прогресс до аирдропа:</label>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 15%;"></div>
+                    </div>
+                    <div class="progress-text">15%</div>
+                </div>
+            </div>
         </div>
 
         <!-- Экран заданий -->
         <div id="tasksScreen" class="screen" style="display: none;">
-            <!-- Контент экрана заданий -->
+            <div class="screen-header">
+                <h3>Ежедневные задания</h3>
+                <div class="balance-display">
+                    <span id="score-tasks">0</span> SLC
+                </div>
+            </div>
+            
+            <div class="tasks-container">
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-name">Собрать 1000 SLC</div>
+                        <div class="task-progress">0/1000</div>
+                    </div>
+                    <button class="task-claim-btn" disabled>Забрать</button>
+                </div>
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-name">Купить улучшение</div>
+                        <div class="task-progress">0/1</div>
+                    </div>
+                    <button class="task-claim-btn" disabled>Забрать</button>
+                </div>
+                
+                <h3>Подготовка к аирдропу</h3>
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-name">Подписаться на канал</div>
+                        <div class="task-reward">+10% к весу аирдропа</div>
+                    </div>
+                    <button class="task-action-btn">Выполнить</button>
+                </div>
+                <div class="task-item">
+                    <div class="task-info">
+                        <div class="task-name">Пригласить друга</div>
+                        <div class="task-reward">+20% к весу аирдропа</div>
+                    </div>
+                    <button class="task-action-btn">Пригласить</button>
+                </div>
+            </div>
         </div>
 
         <!-- Экран друзей -->
         <div id="friendsScreen" class="screen" style="display: none;">
-            <!-- Контент экрана друзей -->
+            <div class="screen-header">
+                <h3>Реферальная программа</h3>
+                <div class="balance-display">
+                    <span id="score-friends">0</span> SLC
+                </div>
+            </div>
+            
+            <div class="referral-program">
+                <p>Приглашайте друзей и получайте +10% от их майнинга!</p>
+                <div class="referral-link-container">
+                    <input type="text" id="referralLink" readonly value="https://t.me/SLCMinerBot?start=REF123">
+                    <button id="copyReferralLink" class="copy-btn">Копировать</button>
+                </div>
+                
+                <h3>Ваши рефералы</h3>
+                <div class="referrals-container">
+                    <div class="no-referrals">У вас пока нет рефералов</div>
+                </div>
+            </div>
         </div>
 
         <!-- Навигационное меню -->
         <div class="nav-menu">
-            <div class="nav-item active" data-screen="mainScreen">
+            <div class="nav-item" data-screen="boostersScreen">
                 <div class="nav-icon">
-                    <img src="https://img.icons8.com/?size=100&id=OR6d9aJQZo8w&format=png&color=000000" alt="Mine">
+                    <img src="https://img.icons8.com/?size=100&id=9378&format=png&color=000000" alt="Boosters">
                 </div>
-                <span>Mine</span>
+                <span>Майнеры</span>
             </div>
             <div class="nav-item" data-screen="profileScreen">
                 <div class="nav-icon">
                     <img src="https://img.icons8.com/?size=100&id=14736&format=png&color=000000" alt="Profile">
                 </div>
-                <span>Profile</span>
+                <span>Профиль</span>
             </div>
-            <div class="nav-item" data-screen="boostersScreen">
+            <div class="nav-item active" data-screen="mainScreen">
                 <div class="nav-icon">
-                    <img src="https://img.icons8.com/?size=100&id=9378&format=png&color=000000" alt="Boosters">
+                    <img src="https://img.icons8.com/?size=100&id=OR6d9aJQZo8w&format=png&color=000000" alt="Mine">
                 </div>
-                <span>Boosters</span>
+                <span>Майнинг</span>
             </div>
             <div class="nav-item" data-screen="tasksScreen">
                 <div class="nav-icon">
                     <img src="https://img.icons8.com/?size=100&id=11266&format=png&color=000000" alt="Tasks">
                 </div>
-                <span>Tasks</span>
+                <span>Задания</span>
             </div>
             <div class="nav-item" data-screen="friendsScreen">
                 <div class="nav-icon">
                     <img src="https://img.icons8.com/?size=100&id=u09tKZyLr2A0&format=png&color=000000" alt="Friends">
                 </div>
-                <span>Friends</span>
+                <span>Рефералы</span>
             </div>
         </div>
     </div>
