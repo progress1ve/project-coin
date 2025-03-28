@@ -266,89 +266,83 @@ function loadProgress() {
 
 // Функция синхронизации с сервером (опционально)
 async function syncWithServer() {
-    // Если нет ID пользователя, выходим
-    if (!userData.user_id) return;
-    
-    // Добавляем проверку на локальный режим с выключенным сервером
-    const isLocalMode = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1' || 
-                       window.location.protocol === 'file:';
-    
-    // В локальном режиме просто выходим без запросов к серверу
-    if (isLocalMode) {
-        // console.log('Локальный режим: синхронизация с сервером отключена');
-        return;
-    }
-    
     try {
+        // Проверяем, есть ли данные для синхронизации
+        if (!userData || !userData.user_id) {
+            console.log("Нет данных для синхронизации");
+            return false;
+        }
+        
+        // Добавляем проверку, работаем ли мы в режиме без сервера
+        const isOfflineMode = true; // Установите true для работы без сервера
+        
+        if (isOfflineMode) {
+            console.log("Приложение работает в автономном режиме, синхронизация отключена");
+            return true; // Возвращаем true, чтобы приложение продолжало работать
+        }
+        
+        // Если не в автономном режиме, пытаемся синхронизироваться
         const response = await fetch(`${API_BASE_URL}/api/save-progress`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                user_id: userData.user_id,
-                username: userData.username,
-                progress: {
-                    points: score,
-                    points_per_click: clickValue,
-                    auto_clicker_count: autoClickerCount,
-                    upgrades: {
-                        clickUpgrade: upgradeCosts.clickUpgrade,
-                        autoClicker: upgradeCosts.autoClicker
-                    }
-                }
+                userId: userData.user_id,
+                score: score,
+                clickValue: clickValue,
+                autoClickValue: autoClickerCount,
+                lastSaved: new Date().toISOString()
             })
         });
         
         if (!response.ok) {
-            throw new Error('Ошибка при синхронизации с сервером');
+            throw new Error(`Ошибка сервера: ${response.status}`);
         }
         
-        console.log('Прогресс успешно синхронизирован с сервером');
+        const data = await response.json();
+        console.log("Прогресс сохранен на сервере:", data);
+        return true;
     } catch (error) {
-        console.error('Ошибка синхронизации с сервером:', error);
-        // Сохраняем локально даже если синхронизация не удалась
+        console.log("Ошибка синхронизации с сервером:", error);
+        // Несмотря на ошибку, возвращаем true, чтобы приложение продолжало работать
+        return true;
     }
 }
 
 // Функция загрузки прогресса с сервера (опционально)
 async function loadFromServer() {
-    // Если нет ID пользователя, выходим
-    if (!userData.user_id) return false;
-    
-    // Добавляем проверку на локальный режим с выключенным сервером
-    const isLocalMode = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1' || 
-                       window.location.protocol === 'file:';
-    
-    // В локальном режиме просто выходим без запросов к серверу
-    if (isLocalMode) {
-        // console.log('Локальный режим: загрузка с сервера отключена');
-        return false;
-    }
-    
     try {
-        const response = await fetch(`${API_BASE_URL}/api/get-progress?user_id=${userData.user_id}`);
+        // Добавляем проверку, работаем ли мы в режиме без сервера
+        const isOfflineMode = true; // Установите true для работы без сервера
         
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке с сервера');
+        if (isOfflineMode) {
+            console.log("Приложение работает в автономном режиме, загрузка с сервера отключена");
+            return false; // Просто возвращаем false, чтобы загрузить локальные данные
         }
         
-        const serverData = await response.json();
+        // Если не в автономном режиме, пытаемся загрузить данные с сервера
+        if (!userData || !userData.user_id) {
+            console.log("Нет ID пользователя для загрузки данных");
+            return false;
+        }
         
-        // Обновляем локальные данные из серверных
-        if (serverData && serverData.progress) {
-            score = serverData.progress.points || 0;
-            clickValue = serverData.progress.points_per_click || 1;
-            autoClickerCount = serverData.progress.auto_clicker_count || 0;
+        const response = await fetch(`${API_BASE_URL}/api/get-progress?userId=${userData.user_id}`);
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка сервера: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.score !== undefined) {
+            // Обновляем только если есть данные
+            score = data.score;
+            clickValue = data.clickValue || clickValue;
+            autoClickerCount = data.autoClickValue || autoClickerCount;
+            console.log("Данные загружены с сервера:", data);
             
-            if (serverData.progress.upgrades) {
-                upgradeCosts.clickUpgrade = serverData.progress.upgrades.clickUpgrade || 10;
-                upgradeCosts.autoClicker = serverData.progress.upgrades.autoClicker || 50;
-            }
-            
-            // Сохраняем в localStorage для будущего использования
+            // Обновляем данные пользователя
             userData.points = score;
             userData.points_per_click = clickValue;
             userData.auto_clicker_count = autoClickerCount;
@@ -359,7 +353,7 @@ async function loadFromServer() {
         
         return false;
     } catch (error) {
-        console.error('Ошибка загрузки прогресса с сервера:', error);
+        console.log("Ошибка загрузки данных с сервера:", error);
         return false;
     }
 }
